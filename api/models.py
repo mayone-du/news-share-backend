@@ -1,20 +1,14 @@
-from django.db import models
-from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin, BaseUserManager
 from django.conf import settings
+from django.contrib.auth.models import (AbstractBaseUser, BaseUserManager,
+                                        PermissionsMixin)
+from django.db import models
 
 # Create your models here.
 
 
-
-def upload_avatar_path(instance, filename):
+def upload_profile_path(instance, filename):
     ext = filename.split('.')[-1]
-    return '/'.join(['avatars', str(instance.target_user.id)+str(instance.profile_name)+str(".")+str(ext)])
-
-
-def upload_post_path(instance, filename):
-    ext = filename.split('.')[-1]
-    return '/'.join(['todos', str(instance.posted_user.id)+str(instance.title)+str(".")+str(ext)])
-
+    return '/'.join(['profiles', str(instance.target_user.id)+str(instance.profile_name)+str(".")+str(ext)])
 
 
 class UserManager(BaseUserManager):
@@ -51,15 +45,15 @@ class User(AbstractBaseUser, PermissionsMixin):
         return self.email
 
 
-
 class Profile(models.Model):
     target_user = models.OneToOneField(
-    settings.AUTH_USER_MODEL, related_name='target_user',
-    on_delete=models.CASCADE
+        settings.AUTH_USER_MODEL, related_name='target_user',
+        on_delete=models.CASCADE
     )
     profile_name = models.CharField(max_length=100)
     profile_text = models.CharField(max_length=1000)
-    profile_image = models.ImageField(blank=True, null=True, upload_to=upload_avatar_path)
+    profile_image = models.ImageField(
+        blank=True, null=True, upload_to=upload_profile_path)
 
     def __str__(self):
-    return self.profile_name
+        return self.profile_name

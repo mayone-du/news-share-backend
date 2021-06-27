@@ -176,14 +176,14 @@ MEDIA_ROOT = str(BASE_DIR / 'mediafiles')
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
+# productionではコメントアウトを解除
+# CLOUDINARY_STORAGE = {
+#     'CLOUD_NAME': 'mayone-du',
+#     'API_KEY': '969557674849524',
+#     'API_SECRET': config("CLOUDINARY_API_SECRET"),
+# }
 
-CLOUDINARY_STORAGE = {
-    'CLOUD_NAME': 'mayone-du',
-    'API_KEY': '969557674849524',
-    'API_SECRET': config("CLOUDINARY_API_SECRET"),
-}
-
-DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
+# DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
 
 EMAIL_HOST = config('EMAIL_HOST')
 EMAIL_HOST_USER = config('EMAIL_HOST_USER')
