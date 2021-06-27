@@ -22,7 +22,7 @@ class UserNode(DjangoObjectType):
         interfaces = (relay.Node,)
 
 
-class UserCreateMutation(relay.ClientIDMutation):
+class CreateUserMutation(relay.ClientIDMutation):
     class Input:
         username = graphene.String(required=False)
         email = graphene.String(required=True)
@@ -38,11 +38,84 @@ class UserCreateMutation(relay.ClientIDMutation):
         user.set_password(input.get('password'))
         user.save()
 
-        return UserCreateMutation(user=user)
+        return CreateUserMutation(user=user)
+
+
+class CategoryNode(DjangoObjectType):
+    class Meta:
+        model = Category
+        filter_fields = {
+            'category_name': ['exact', 'icontains']
+        }
+        interfaces = (relay.Node,)
+
+
+class CreateCategoryMutation(relay.ClientIDMutation):
+    class Input:
+        category_name = graphene.String(required=True)
+
+    category = graphene.Field(CategoryNode)
+
+    def mutate_and_get_payload(root, info, **input):
+        category = Category(
+            category_name=input.get('category_name'),
+        )
+        return CreateCategoryMutation(category=category)
+
+
+class TagNode(DjangoObjectType):
+    class Meta:
+        model = Tag
+        filter_fields = {
+            'tag_name': ['exact', 'icontains']
+        }
+        interfaces = (relay.Node,)
+
+
+class CreateTagMutation(relay.ClientIDMutation):
+    class Input:
+        tag_name = graphene.String(required=True)
+
+    tag = graphene.Field(TagNode)
+
+    def mutate_and_get_payload(root, info, **input):
+        tag = Tag(
+            tag_name=input.get('tag_name'),
+        )
+        return CreateTagMutation(tag=tag)
+
+
+class NewsNode(DjangoObjectType):
+    class Meta:
+        model = News
+        filter_fields = {
+            'url': ['exact'],
+            'title': ['exact', 'icontains'],
+            'summary': ['exact', 'icontains'],
+            'created_at': ['exact', 'icontains'],
+        }
+        interfaces = (relay.Node,)
+
+
+class CreateNewsMutation(relay.ClientIDMutation):
+    class Input:
+        select_category_id = graphene.ID(required=True)
+        url = graphene.String(required=True)
+
+    news = graphene.Field(NewsNode)
+
+    def mutate_and_get_payload(root, info, **input):
+        news = News(
+            url=input.get('url'),
+        )
+        return CreateNewsMutation(news=news)
 
 
 class Mutation(graphene.ObjectType):
-    create_user = UserCreateMutation.Field()
+    create_user = CreateUserMutation.Field()
+    create_category = CreateCategoryMutation().Field()
+    create_tag = CreateTagMutation().Field()
+    create_news = CreateNewsMutation().Field()
     token_auth = graphql_jwt.ObtainJSONWebToken.Field()
     refresh_token = graphql_jwt.Refresh.Field()
 
@@ -50,12 +123,22 @@ class Mutation(graphene.ObjectType):
 class Query(graphene.ObjectType):
     user = graphene.Field(UserNode, id=graphene.NonNull(graphene.ID))
     all_users = DjangoFilterConnectionField(UserNode)
+    category = graphene.Field(CategoryNode, id=graphene.NonNull(graphene.ID))
+    all_categories = DjangoFilterConnectionField(CategoryNode)
+    tag = graphene.Field(TagNode, id=graphene.NonNull(graphene.ID))
+    all_tags = DjangoFilterConnectionField(TagNode)
+    news = graphene.Field(NewsNode, id=graphene.NonNull(graphene.ID))
+    all_news = DjangoFilterConnectionField(NewsNode)
 
     @login_required
     def resolve_user(self, info, **kwargs):
-        email = kwargs.get('email')
+        id = kwargs.get('id')
         return get_user_model().objects.get(id=from_global_id(id)[1])
 
     @login_required
     def resolve_all_users(self, info, **kwargs):
         return get_user_model().objects.all()
+
+    def resolve_category(self, info, **kwargs):
+        id = kwargs.get('id')
+        return Tag.objects.get(id=from_global_id(id)[1])
