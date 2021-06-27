@@ -1,3 +1,5 @@
+from os import O_NDELAY
+
 from django.conf import settings
 from django.contrib.auth.models import (AbstractBaseUser, BaseUserManager,
                                         PermissionsMixin)
@@ -45,15 +47,19 @@ class User(AbstractBaseUser, PermissionsMixin):
         return self.email
 
 
-class Profile(models.Model):
-    target_user = models.OneToOneField(
-        settings.AUTH_USER_MODEL, related_name='target_user',
-        on_delete=models.CASCADE
-    )
-    profile_name = models.CharField(max_length=100)
-    profile_text = models.CharField(max_length=1000)
-    profile_image = models.ImageField(
-        blank=True, null=True, upload_to=upload_profile_path)
+class Category(models.Model):
+    category_name = models.CharField(max_length=50, unique=True)
 
-    def __str__(self):
-        return self.profile_name
+
+class Tag(models.Model):
+    tag_name = models.CharField(max_length=50, unique=True)
+
+
+class News(models.Model):
+    select_category = models.ForeignKey(
+        to=Category, related_name='select_category', on_delete=models.PROTECT)
+    url = models.URLField(unique=True)
+    title = models.CharField(max_length=200)
+    summary = models.CharField(max_length=500)
+    created_at = models.DateTimeField(auto_now_add=True)
+    tags = models.ManyToManyField(to=Tag, related_name='tags', default=[])
