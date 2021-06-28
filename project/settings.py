@@ -58,7 +58,7 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-ROOT_URLCONF = 'prj.urls'
+ROOT_URLCONF = 'project.urls'
 
 GRAPHQL_JWT = {
     'JWT_VERIFY_EXPIRATION': True,
@@ -90,7 +90,7 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = 'prj.wsgi.application'
+WSGI_APPLICATION = 'project.wsgi.application'
 
 
 # Database
@@ -113,7 +113,7 @@ DATABASES = {
 }
 
 
-GRAPHENE = {'SCHEMA': 'prj.schema.schema',
+GRAPHENE = {'SCHEMA': 'project.schema.schema',
             'MIDDLEWARE': [
                 'graphql_jwt.middleware.JSONWebTokenMiddleware',
             ],

@@ -15,7 +15,6 @@ class UserNode(DjangoObjectType):
     class Meta:
         model = User
         filter_fields = {
-            'username': ['exact', 'icontains'],
             'email': ['exact', 'icontains'],
             'is_staff': ['exact']
         }
@@ -33,8 +32,8 @@ class CreateUserMutation(relay.ClientIDMutation):
     def mutate_and_get_payload(root, info, **input):
         user = User(
             email=input.get('email'),
+            username=input.get('username')
         )
-        user.username = input.get('username')
         user.set_password(input.get('password'))
         user.save()
 
@@ -103,7 +102,7 @@ class CreateNewsMutation(relay.ClientIDMutation):
         url = graphene.String(required=True)
         title = graphene.String(required=True)
         summary = graphene.String(required=True)
-        tag_ids = graphene.List(TagNode)
+        tag_ids = graphene.List(graphene.ID)
 
     news = graphene.Field(NewsNode)
 
