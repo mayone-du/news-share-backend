@@ -116,18 +116,25 @@ class CreateNewsMutation(relay.ClientIDMutation):
         # TODO: エラーハンドリング
         html = requests.get(input.get('url')).text
         parsed_html = BeautifulSoup(html, 'html.parser')
-        # OGPのタイトル
-        og_title = parsed_html.find(
-            'meta', attrs={'property': 'og:title', 'content': True}).get('content')
-        news.title = og_title
-        # OGPのディスクリプション
-        og_description = parsed_html.find(
-            'meta', attrs={'property': 'og:description', 'content': True}).get('content')
-        news.summary = og_description
-        # OGPの画像
-        og_image = parsed_html.find(
-            'meta', attrs={'property': 'og:image', 'content': True}).get('content')
-        news.image_path = og_image
+        # OGPのタイトルがある場合
+        if parsed_html.find(
+                'meta', attrs={'property': 'og:title', 'content': True}).get('content') is not None:
+            og_title = parsed_html.find(
+                'meta', attrs={'property': 'og:title', 'content': True}).get('content')
+            news.title = og_title
+        # OGPのディスクリプションがある場合
+        if parsed_html.find(
+                'meta', attrs={'property': 'og:description', 'content': True}).get('content') is not None:
+            og_description = parsed_html.find(
+                'meta', attrs={'property': 'og:description', 'content': True}).get('content')
+            news.summary = og_description
+        # OGPの画像がある場合
+        if parsed_html.find(
+                'meta', attrs={'property': 'og:image', 'content': True}).get('content') is not None:
+            og_image = parsed_html.find(
+                'meta', attrs={'property': 'og:image', 'content': True}).get('content')
+            news.image_path = og_image
+
         news.save()
 
         if input.get('select_category_id') is not None:
