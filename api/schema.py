@@ -1,5 +1,8 @@
 import graphene
 import graphql_jwt
+import requests
+from bs4 import BeautifulSoup
+from decouple import config
 from django.contrib.auth import get_user_model
 from graphene import relay
 from graphene_django.filter import DjangoFilterConnectionField
@@ -98,22 +101,39 @@ class NewsNode(DjangoObjectType):
 
 class CreateNewsMutation(relay.ClientIDMutation):
     class Input:
-        select_category_id = graphene.ID(required=True)
+        select_category_id = graphene.ID(required=False)
         url = graphene.String(required=True)
-        title = graphene.String(required=True)
-        summary = graphene.String(required=True)
         tag_ids = graphene.List(graphene.ID)
 
     news = graphene.Field(NewsNode)
 
     def mutate_and_get_payload(root, info, **input):
         news = News(
-            select_category_id=Category.objects.get(
-                id=from_global_id(input.get('select_category_id'))[1]),
             url=input.get('url'),
-            title=input.get('title'),
-            summary=input.get('summary'),
         )
+
+        # スクレイピングでOGPの内容を取得
+        # TODO: エラーハンドリング
+        html = requests.get(input.get('url')).text
+        parsed_html = BeautifulSoup(html, 'html.parser')
+        # OGPのタイトル
+        og_title = parsed_html.find(
+            'meta', attrs={'property': 'og:title', 'content': True}).get('content')
+        news.title = og_title
+        # OGPのディスクリプション
+        og_description = parsed_html.find(
+            'meta', attrs={'property': 'og:description', 'content': True}).get('content')
+        news.summary = og_description
+        # OGPの画像
+        og_image = parsed_html.find(
+            'meta', attrs={'property': 'og:image', 'content': True}).get('content')
+        news.image_path = og_image
+        news.save()
+
+        if input.get('select_category_id') is not None:
+            news.select_category_id = from_global_id(
+                input.get('select_category_id'))[1],
+
         tag_set = []
         if input.get('tag_ids') is not None:
             for tag_id in input.get('tag_ids'):
@@ -130,6 +150,7 @@ class Mutation(graphene.ObjectType):
     create_news = CreateNewsMutation().Field()
     token_auth = graphql_jwt.ObtainJSONWebToken.Field()
     refresh_token = graphql_jwt.Refresh.Field()
+    revoke_token = graphql_jwt.Revoke.Field()
 
 
 class Query(graphene.ObjectType):
@@ -142,12 +163,12 @@ class Query(graphene.ObjectType):
     news = graphene.Field(NewsNode, id=graphene.NonNull(graphene.ID))
     all_news = DjangoFilterConnectionField(NewsNode)
 
-    @login_required
+    @ login_required
     def resolve_user(self, info, **kwargs):
         id = kwargs.get('id')
         return get_user_model().objects.get(id=from_global_id(id)[1])
 
-    @login_required
+    @ login_required
     def resolve_all_users(self, info, **kwargs):
         return get_user_model().objects.all()
 

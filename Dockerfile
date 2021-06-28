@@ -18,6 +18,8 @@ RUN \
   cloudinary \
   django-cloudinary-storage \
   psycopg2-binary \
-  gunicorn
+  gunicorn \
+  beautifulsoup4 \
+  requests
 
 CMD [ "/bin/bash" ]

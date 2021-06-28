@@ -1,4 +1,4 @@
-from os import O_NDELAY
+from os import O_NDELAY, truncate
 
 from django.conf import settings
 from django.contrib.auth.models import (AbstractBaseUser, BaseUserManager,
@@ -47,16 +47,28 @@ class User(AbstractBaseUser, PermissionsMixin):
 class Category(models.Model):
     category_name = models.CharField(max_length=50, unique=True)
 
+    def __str__(self):
+        return self.category_name
+
 
 class Tag(models.Model):
     tag_name = models.CharField(max_length=50, unique=True)
 
+    def __str__(self):
+        return self.tag_name
+
 
 class News(models.Model):
     select_category = models.ForeignKey(
-        to=Category, related_name='select_category', on_delete=models.PROTECT)
+        to=Category, related_name='select_category', on_delete=models.PROTECT, blank=True, null=True)
     url = models.URLField(unique=True)
-    title = models.CharField(max_length=200)
-    summary = models.CharField(max_length=500)
+    title = models.CharField(max_length=200, blank=True, null=True, default='')
+    summary = models.CharField(max_length=500, blank=True, null=True)
+    image_path = models.CharField(
+        max_length=1000, blank=True, null=True, default='')
     created_at = models.DateTimeField(auto_now_add=True)
-    tags = models.ManyToManyField(to=Tag, related_name='tags', default=[])
+    tags = models.ManyToManyField(
+        to=Tag, related_name='tags', default=[], blank=True, null=True)
+
+    def __str__(self):
+        return self.url
