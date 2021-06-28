@@ -101,13 +101,26 @@ class CreateNewsMutation(relay.ClientIDMutation):
     class Input:
         select_category_id = graphene.ID(required=True)
         url = graphene.String(required=True)
+        title = graphene.String(required=True)
+        summary = graphene.String(required=True)
+        tag_ids = graphene.List(TagNode)
 
     news = graphene.Field(NewsNode)
 
     def mutate_and_get_payload(root, info, **input):
         news = News(
+            select_category_id=Category.objects.get(
+                id=from_global_id(input.get('select_category_id'))[1]),
             url=input.get('url'),
+            title=input.get('title'),
+            summary=input.get('summary'),
         )
+        tag_set = []
+        if input.get('tag_ids') is not None:
+            for tag_id in input.get('tag_ids'):
+                tag_set.append(tag_id)
+            news.tags = tag_set
+        news.save()
         return CreateNewsMutation(news=news)
 
 
