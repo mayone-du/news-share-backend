@@ -141,4 +141,21 @@ class Query(graphene.ObjectType):
 
     def resolve_category(self, info, **kwargs):
         id = kwargs.get('id')
+        return Category.objects.get(id=from_global_id(id)[1])
+
+    def resolve_all_categories(self, info, **kwargs):
+        return Category.objects.all()
+
+    def resolve_tag(self, info, **kwargs):
+        id = kwargs.get('id')
         return Tag.objects.get(id=from_global_id(id)[1])
+
+    def resolve_all_tags(self, info, **kwargs):
+        return Tag.objects.all()
+
+    def resolve_news(self, info, **kwargs):
+        id = kwargs.get('id')
+        return News.objects.get(id=from_global_id(id)[1])
+
+    def resolve_all_news(self, info, **kwargs):
+        return News.objects.all()
