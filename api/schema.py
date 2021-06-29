@@ -126,6 +126,9 @@ class CreateNewsMutation(relay.ClientIDMutation):
             if og_title_tag is not None:
                 og_title = og_title_tag.get('content')
                 news.title = og_title
+            else:
+                news.title = parsed_html.find('title').text
+
             # OGPのディスクリプションがある場合
             og_description_tag = parsed_html.find(
                 'meta', attrs={'property': 'og:description', 'content': True})
