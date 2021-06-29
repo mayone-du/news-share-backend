@@ -106,12 +106,14 @@ class CreateNewsMutation(relay.ClientIDMutation):
         select_category_id = graphene.ID(required=False)
         url = graphene.String(required=True)
         tag_ids = graphene.List(graphene.ID)
+        contributor_name = graphene.String(required=False)
 
     news = graphene.Field(NewsNode)
 
     def mutate_and_get_payload(root, info, **input):
         news = News(
             url=input.get('url'),
+            contributor_name=input.get('contributor_name'),
         )
 
         # スクレイピングでOGPの内容を取得
