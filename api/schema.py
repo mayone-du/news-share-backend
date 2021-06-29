@@ -1,3 +1,5 @@
+import datetime
+
 import graphene
 import graphql_jwt
 import requests
@@ -113,41 +115,41 @@ class CreateNewsMutation(relay.ClientIDMutation):
         )
 
         # スクレイピングでOGPの内容を取得
-        # TODO: エラーハンドリング
         html = requests.get(input.get('url')).text
         parsed_html = BeautifulSoup(html, 'html.parser')
-        # OGPのタイトルがある場合
-        if parsed_html.find(
-                'meta', attrs={'property': 'og:title', 'content': True}).get('content') is not None:
-            og_title = parsed_html.find(
-                'meta', attrs={'property': 'og:title', 'content': True}).get('content')
-            news.title = og_title
-        # OGPのディスクリプションがある場合
-        if parsed_html.find(
-                'meta', attrs={'property': 'og:description', 'content': True}).get('content') is not None:
-            og_description = parsed_html.find(
-                'meta', attrs={'property': 'og:description', 'content': True}).get('content')
-            news.summary = og_description
-        # OGPの画像がある場合
-        if parsed_html.find(
-                'meta', attrs={'property': 'og:image', 'content': True}).get('content') is not None:
-            og_image = parsed_html.find(
-                'meta', attrs={'property': 'og:image', 'content': True}).get('content')
-            news.image_path = og_image
+        if parsed_html is not None:
+            # OGPのタイトルがある場合
+            og_title_tag = parsed_html.find(
+                'meta', attrs={'property': 'og:title', 'content': True})
+            if og_title_tag is not None:
+                og_title = og_title_tag.get('content')
+                news.title = og_title
+            # OGPのディスクリプションがある場合
+            og_description_tag = parsed_html.find(
+                'meta', attrs={'property': 'og:description', 'content': True})
+            if og_description_tag is not None:
+                og_description = og_description_tag.get('content')
+                news.summary = og_description
+            # OGPの画像がある場合
+            og_image_tag = parsed_html.find(
+                'meta', attrs={'property': 'og:image', 'content': True})
+            if og_image_tag is not None:
+                og_image = og_image_tag.get('content')
+                news.image_path = og_image
 
-        news.save()
+            news.save()
 
-        if input.get('select_category_id') is not None:
-            news.select_category_id = from_global_id(
-                input.get('select_category_id'))[1],
+            if input.get('select_category_id') is not None:
+                news.select_category_id = from_global_id(
+                    input.get('select_category_id'))[1],
 
-        tag_set = []
-        if input.get('tag_ids') is not None:
-            for tag_id in input.get('tag_ids'):
-                tag_set.append(tag_id)
-            news.tags = tag_set
-        news.save()
-        return CreateNewsMutation(news=news)
+            tag_set = []
+            if input.get('tag_ids') is not None:
+                for tag_id in input.get('tag_ids'):
+                    tag_set.append(tag_id)
+                news.tags = tag_set
+            news.save()
+            return CreateNewsMutation(news=news)
 
 
 class Mutation(graphene.ObjectType):
@@ -169,6 +171,7 @@ class Query(graphene.ObjectType):
     all_tags = DjangoFilterConnectionField(TagNode)
     news = graphene.Field(NewsNode, id=graphene.NonNull(graphene.ID))
     all_news = DjangoFilterConnectionField(NewsNode)
+    today_news = DjangoFilterConnectionField(NewsNode)
 
     @ login_required
     def resolve_user(self, info, **kwargs):
@@ -199,3 +202,7 @@ class Query(graphene.ObjectType):
 
     def resolve_all_news(self, info, **kwargs):
         return News.objects.all()
+
+    def resolve_today_news(self, info, **kwargs):
+        today = datetime.datetime.today()
+        return News.objects.filter(created_at__year=today.year, created_at__month=today.month, created_at__day=today.day)

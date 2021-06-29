@@ -69,6 +69,8 @@ class News(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     tags = models.ManyToManyField(
         to=Tag, related_name='tags', default=[], blank=True, null=True)
+    contributor_name = models.CharField(
+        max_length=50, default='', blank=True, null=True)
 
     def __str__(self):
         return self.url
