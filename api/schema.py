@@ -177,6 +177,7 @@ class Query(graphene.ObjectType):
     news = graphene.Field(NewsNode, id=graphene.NonNull(graphene.ID))
     all_news = DjangoFilterConnectionField(NewsNode)
     today_news = DjangoFilterConnectionField(NewsNode)
+    # specific_day_news = DjangoFilterConnectionField(NewsNode)
 
     @ login_required
     def resolve_user(self, info, **kwargs):
@@ -211,3 +212,10 @@ class Query(graphene.ObjectType):
     def resolve_today_news(self, info, **kwargs):
         today = datetime.datetime.today()
         return News.objects.filter(created_at__year=today.year, created_at__month=today.month, created_at__day=today.day)
+
+    # TODO: なぜか動かない
+    # def resolve_specific_day_news(self, info, **kwargs):
+    #     day = str(kwargs.get('created_at'))[:10]
+    #     parsed_day = datetime.datetime.strptime(
+    #         day, '%Y-%m-%d')
+    #     return News.objects.filter(created_at__year=parsed_day.year, created_at__month=parsed_day.month, created_at__day=parsed_day.day)
