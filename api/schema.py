@@ -117,8 +117,8 @@ class CreateNewsMutation(relay.ClientIDMutation):
         )
 
         # スクレイピングでOGPの内容を取得
-        html = requests.get(input.get('url')).text
-        parsed_html = BeautifulSoup(html, 'html.parser')
+        html = requests.get(input.get('url'))
+        parsed_html = BeautifulSoup(html.content, 'html.parser')
         if parsed_html is not None:
             # OGPのタイトルがある場合
             og_title_tag = parsed_html.find(

@@ -20,6 +20,7 @@ RUN \
   psycopg2-binary \
   gunicorn \
   beautifulsoup4 \
-  requests
+  requests \
+  chardet
 
 CMD [ "/bin/bash" ]
