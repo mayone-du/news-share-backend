@@ -107,6 +107,7 @@ class CreateNewsMutation(relay.ClientIDMutation):
         url = graphene.String(required=True)
         tag_ids = graphene.List(graphene.ID)
         contributor_name = graphene.String(required=False)
+        created_at = graphene.Int(required=True)
 
     news = graphene.Field(NewsNode)
 
@@ -115,6 +116,11 @@ class CreateNewsMutation(relay.ClientIDMutation):
             url=input.get('url'),
             contributor_name=input.get('contributor_name'),
         )
+
+        # 作成日時をタイムUNIXタイムスタンプ形式で受け取り設定
+        if input.get('created_at') is not None:
+            now = datetime.datetime.fromtimestamp(input.get('created_at'))
+            news.created_at = now
 
         # スクレイピングでOGPの内容を取得
         html = requests.get(input.get('url'))
@@ -157,11 +163,29 @@ class CreateNewsMutation(relay.ClientIDMutation):
             return CreateNewsMutation(news=news)
 
 
+class UpdateNewsMutation(relay.ClientIDMutation):
+    class Input:
+        id = graphene.ID(required=True)
+        created_at = graphene.Int(required=True)
+
+    news = graphene.Field(NewsNode)
+
+    def mutate_and_get_payload(root, info, **input):
+        news = News.objects.get(id=from_global_id(input.get('id'))[1])
+
+        news.created_at = datetime.datetime.fromtimestamp(
+            input.get('created_at', ))
+
+        news.save()
+        return UpdateNewsMutation(news=news)
+
+
 class Mutation(graphene.ObjectType):
     create_user = CreateUserMutation.Field()
     create_category = CreateCategoryMutation().Field()
     create_tag = CreateTagMutation().Field()
     create_news = CreateNewsMutation().Field()
+    update_news = UpdateNewsMutation().Field()
     token_auth = graphql_jwt.ObtainJSONWebToken.Field()
     refresh_token = graphql_jwt.Refresh.Field()
     revoke_token = graphql_jwt.Revoke.Field()

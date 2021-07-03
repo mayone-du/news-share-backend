@@ -66,9 +66,10 @@ class News(models.Model):
     summary = models.CharField(max_length=500, blank=True, null=True)
     image_path = models.CharField(
         max_length=1000, blank=True, null=True, default='')
-    created_at = models.DateTimeField(auto_now_add=True)
+    # created_at = models.DateTimeField(auto_now_add=True)
+    created_at = models.DateTimeField()
     tags = models.ManyToManyField(
-        to=Tag, related_name='tags', default=[], blank=True, null=True)
+        to=Tag, related_name='tags', default=[], blank=True)
     contributor_name = models.CharField(
         max_length=50, default='', blank=True, null=True)
 
