@@ -72,4 +72,4 @@ class News(models.Model):
         max_length=50, default='', blank=True, null=True)
 
     def __str__(self):
-        return self.title + ' : ' + self.url
+        return str(self.title) + ' : ' + str(self.url)
