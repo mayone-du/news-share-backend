@@ -124,6 +124,7 @@ class CreateNewsMutation(relay.ClientIDMutation):
 
         # スクレイピングでOGPの内容を取得
         html = requests.get(input.get('url'))
+        # HTMLをパース
         parsed_html = BeautifulSoup(html.content, 'html.parser')
         if parsed_html is not None:
             # OGPのタイトルがある場合
@@ -173,6 +174,7 @@ class UpdateNewsMutation(relay.ClientIDMutation):
     def mutate_and_get_payload(root, info, **input):
         news = News.objects.get(id=from_global_id(input.get('id'))[1])
 
+        # ニュースのシェアする時間を明日に延期
         news.created_at = datetime.datetime.fromtimestamp(
             input.get('created_at', ))
 
@@ -230,9 +232,11 @@ class Query(graphene.ObjectType):
         id = kwargs.get('id')
         return News.objects.get(id=from_global_id(id)[1])
 
+    # 全てのニュースを取得
     def resolve_all_news(self, info, **kwargs):
         return News.objects.all()
 
+    # 今日のニュースを取得
     def resolve_today_news(self, info, **kwargs):
         today = datetime.datetime.today()
         return News.objects.filter(created_at__year=today.year, created_at__month=today.month, created_at__day=today.day)
