@@ -60,8 +60,8 @@ class News(models.Model):
     select_category = models.ForeignKey(
         to=Category, related_name='select_category', on_delete=models.PROTECT, blank=True, null=True)
     url = models.URLField(unique=True)
-    title = models.CharField(max_length=200, blank=True, null=True, default='')
-    summary = models.CharField(max_length=500, blank=True, null=True)
+    title = models.CharField(max_length=500, blank=True, null=True, default='')
+    summary = models.CharField(max_length=500, blank=True, null=True, default='')
     image_path = models.CharField(
         max_length=1000, blank=True, null=True, default='')
     # created_at = models.DateTimeField(auto_now_add=True)
