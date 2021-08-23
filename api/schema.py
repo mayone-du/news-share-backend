@@ -208,6 +208,12 @@ class Query(graphene.ObjectType):
                                                     year=graphene.Int(required=True),
                                                     month=graphene.Int(required=True),
                                                     day=graphene.Int(required=True))
+                            
+
+    # ニュースの件数を取得
+    news_count = graphene.Int()
+    def resolve_news_count(self, info, **kwargs):
+        return News.objects.all().count()
 
     @ login_required
     def resolve_user(self, info, **kwargs):
